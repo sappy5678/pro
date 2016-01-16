@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Map + Ajax</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAU_ENa3m1P-btrBW2Hd2YfdFP_Qooujzk"></script>
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>	
+    <script>
+    $(function(){
+	var map = new google.maps.Map(document.getElementById('map'), {
+	    center: {lat: 24.9699054, lng:121.264305 },
+	    zoom: 8
+	});
+	$.getJSON( "googlemap.php", function( out ) {
+	    $.each(out,function(i,item){
+	      var lat = item["Lat"];
+		var lng = item["Lot"];
+	    var reason = item["reason"];
+	    var range = item["range"];
+	    var myCenter=new google.maps.LatLng(lat,lng);
+		var  png = "http://d.beifengwang.com/d/file/png/qita/w3sauldirlr.png";
+			var marker=new google.maps.Marker({
+			position:myCenter,
+			icon :png
+		});		
+	    marker.setMap(map);
+		var infowindow = new google.maps.InfoWindow({
+		    content:range+":"+reason
+		});
+		google.maps.event.addListener(marker, 'click', function() {
+		    infowindow.open(map,marker);
+		});
+	    });
+	});
+	
+	
+    });
+    </script>
+ <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="map" width = "800px" height = "400px"></div>
+   </body>
+</html>

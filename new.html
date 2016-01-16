@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>News data</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAU_ENa3m1P-btrBW2Hd2YfdFP_Qooujzk"></script>
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>	
+	    <script type="text/javascript">
+	google.load("visualization", "1", {packages:["corechart"]});
+	google.setOnLoadCallback(line);
+	var arr = new Array();
+        function calcul(seq){
+		
+			if(arr.length==0){//檢查是否為空
+				arr[0]=new Array();
+				arr[0][0]=seq;
+				arr[0][1]=0;
+				
+			}
+			
+			for(var y=0;y<arr.length;y++){
+			//放入	
+				if(arr[y][0]==seq){
+					arr[y][1]++;
+					break;
+				}	
+				if(y==arr.length-1){
+					arr[arr.length]=new Array();
+					arr[arr.length-1][1]=1;
+					arr[arr.length-1][0]=seq;
+					break;
+				}
+			
+			}
+		
+		}
+		
+		function mysort2(b,a) {   
+	     return a[1] - b[1];      
+		}  
+		
+        function line() { 
+		arr = new Array();
+		
+		var data = new google.visualization.DataTable();
+
+		
+		// 設定X軸和Y軸  
+		data.addColumn("string", "name");  
+		data.addColumn("number", "次數"); 
+		var senddata = document.getElementById('catage').value;
+		$.getJSON( "newsget.php?site=" + senddata,function( out ) {
+		
+			$.each(out,function(i,item){
+				calcul( ( item["local"].slice(2,5)==""?item["local"].slice(0,2) :  item["local"].slice(2,5)  )    );
+				
+			});//end each
+		
+		
+		var i=0;
+		data.addRows(arr.length);
+		arr.sort(mysort2);
+		for(var element in arr) {
+			data.setCell(i, 0, arr[i][0]); 
+			data.setCell(i, 1, arr[i][1]); 
+			
+			
+			
+			i++;
+		
+		}
+		new google.visualization.ColumnChart(document.getElementById("map")).  
+		draw(data, null);  
+		alert("成功");
+		});//end getJSON
+		//google.setOnLoadCallback(line()); 
+		
+    }   
+	   
+  </script>
+    <script>
+	function progress(){
+	
+    $(function(){
+	var olat;
+	var olng;
+	var flag=true;
+	var site = $("#catage").val();
+		function addressToLatLng(addr,newscontent,newstitle) {
+			//alert("come in add");
+			//sleep(1);
+			//delayedLoop()
+
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+            "address": addr
+            },  function (results, status) {
+					//olat=25.0329636;
+					//olng=121.56542680000007;
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        olat=(results[0].geometry.location.lat());
+						olng=(results[0].geometry.location.lng());
+						alert(results[0].geometry.location.lat() + "," + results[0].geometry.location.lng());
+						flag=true;
+						if(olat==undefined){
+							//olat=25.0329636;
+							//olng=121.56542680000007;
+							flag=false;
+						}
+						
+						
+						
+			if(olat==undefined){
+				//olat=25.0329636;
+				//olng=121.56542680000007;
+				//flag=false;
+				//return true; 
+				//alert(item["local"]+olat + "," + olng+"失敗");
+			}
+			else{
+			//alert("NO enter");
+			var lat = olat;
+			var lng = olng;
+			//alert(item["local"]+olat + "," + olng+"成功");
+			//var reason = 123;//item["newscontent"];
+			//var range = 456;//item["newstitle"];
+			var myCenter=new google.maps.LatLng(lat,lng);
+			var  png = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+				var marker=new google.maps.Marker({
+				position:myCenter,
+				icon :png
+			});	
+			
+			marker.setMap(map);
+			var infowindow = new google.maps.InfoWindow({
+				content:newstitle+"<br>"+newscontent
+			});
+			google.maps.event.addListener(marker, 'click', function() {
+				infowindow.open(map,marker);
+			});
+			}
+			
+			
+			
+			
+			
+                    } else {
+						//olat=25.0329636;
+						//olng=121.56542680000007;
+						//alert(status+String(addr)+"查無經緯度");
+						flag=false;
+
+                    }
+
+            });
+
+        }
+		
+
+		
+	
+	
+		var map = new google.maps.Map(document.getElementById('map'), {
+			center: {lat: 24.9699054, lng:121.264305 },
+			zoom: 8
+		});
+	
+		function delayedLoop() {
+
+            window.setTimeout(delayedLoop, 60000);
+        }
+		
+
+			$.getJSON( "newsget.php?site=" + site, function( out ) {
+			delayedLoop();
+				$.each(out,function(i,item){
+				var newscontent = item["newscontent"];
+				var newstitle = item["newstitle"];
+				addressToLatLng(item["local"],newscontent,newstitle);
+				//if(!flag)return true; 
+				delayedLoop();
+
+
+				});//end each
+			});
+		});
+		}
+    </script>
+ <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+	<div>
+	<form name = "form1">
+	<select id="catage" name = "site" >
+            <option value="http://www.peopo.org/list/post/all/all/all">最新消息</option>
+            <option value="http://www.peopo.org/list/post/hot-views/week/all/all/all">最熱消息</option>
+            <option value="http://www.peopo.org/list/post/hot-votes/week/all/all/all">最多分享</option>
+			<option value="http://www.peopo.org/list/post/ontv/all/all/all">OnTV新聞</option>
+	</select>
+	<input type="button" value="map" onclick="progress()">
+	<input type="button" value="長條圖" onclick="line()">
+	因為是馬上抓的關係，所以時間可能會有點久，加上我不會多執行序QQ
+	</form>
+	</div>
+	
+    <div id="map" width = "800px" height = "400px"></div>
+   </body>
+</html>

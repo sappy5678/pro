@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>newsinfo</title>
+    <meta charset = "utf-8"><title>Line Charts</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript">
+	google.load("visualization", "1", {packages:["corechart"]});
+	google.setOnLoadCallback(line);
+	var arr = new Array();
+        function calcul(seq){
+		
+			if(arr.length==0){//檢查是否為空
+				arr[0]=new Array();
+				arr[0][0]=seq;
+				arr[0][1]=0;
+				
+			}
+			
+			for(var y=0;y<arr.length;y++){
+			//放入	
+				if(arr[y][0]==seq){
+					arr[y][1]++;
+					break;
+				}	
+				if(y==arr.length-1){
+					arr[arr.length]=new Array();
+					arr[arr.length-1][1]=1;
+					arr[arr.length-1][0]=seq;
+					break;
+				}
+			
+			}
+		
+		}
+		
+		function mysort2(b,a) {   
+	     return a[1] - b[1];      
+		}  
+		
+        function line() { 
+		arr = new Array();
+		
+		var data = new google.visualization.DataTable();
+
+		
+		// 設定X軸和Y軸  
+		data.addColumn("string", "name");  
+		data.addColumn("number", "次數"); 
+		var senddata = document.getElementById('location').value;
+		$.getJSON( "newsget.php?site=" + senddata,function( out ) {
+		
+			$.each(out,function(i,item){
+				calcul( ( item["local"].slice(2,5)==""?item["local"].slice(0,2) :  item["local"].slice(2,5)  )    );
+				
+			});//end each
+		
+		
+		var i=0;
+		data.addRows(arr.length);
+		arr.sort(mysort2);
+		for(var element in arr) {
+			data.setCell(i, 0, arr[i][0]); 
+			data.setCell(i, 1, arr[i][1]); 
+			
+			
+			
+			i++;
+		
+		}
+		new google.visualization.ColumnChart(document.getElementById("visualization")).  
+		draw(data, null);  
+		alert("成功");
+		});//end getJSON
+		//google.setOnLoadCallback(line()); 
+		
+    }   
+	   
+  </script>
+</head>
+<body>
+   
+   <form method = "post" action = "#">
+      <p>請選擇新聞類別:
+         <select id = "location">
+            <option value="http://www.peopo.org/list/post/all/all/all">最新消息</option>
+            <option value="http://www.peopo.org/list/post/hot-views/week/all/all/all">最熱消息</option>
+            <option value="http://www.peopo.org/list/post/hot-votes/week/all/all/all">最多分享</option>
+			<option value="http://www.peopo.org/list/post/ontv/all/all/all">OnTV新聞</option>
+
+         </select>
+      </p>
+      <p>
+         <input id = "submit" type="button" value = "Send Query" onclick="line()"></p>
+   </form>
+   <div id="visualization" style="width: 800px; height: 80%;"></div>  
+</body>
+</html>

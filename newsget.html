@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>地圖新聞</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAU_ENa3m1P-btrBW2Hd2YfdFP_Qooujzk"></script>
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>	
+	<script>
+		var map;
+		var catage;
+		var lat;
+		var lng;
+		var flag=true;
+		function link(){
+			/*map = new google.maps.Map(document.getElementById('map'), {
+			center: {lat: 24.9699054, lng:121.264305 },
+			zoom: 8
+			});*/
+			
+			catage=document.getElementById("catage");
+		}
+		
+		function addressToLatLng(addr) {
+			//alert("come in add");
+			//sleep(1);
+			delayedLoop()
+
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+            "address": addr
+            },  function (results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        lat=results[0].geometry.location.lat();
+						lng=results[0].geometry.location.lng();
+						//alert(results[0].geometry.location.lat() + "," + results[0].geometry.location.lng());
+						flag=true;
+                    } else {
+
+                       alert(String(addr)+"查無經緯度");
+						flag=false;
+
+                    }
+
+            });
+
+        }
+		/*function sleep(sec) {
+			var time = new Date().getTime();
+			while(new Date().getTime() - time < sec * 1000);
+		}*/
+		function delayedLoop() {
+
+            window.setTimeout(delayedLoop, 1500);
+        }
+		
+		function drawmap(){
+			//alert("come in drawmap");
+			$(function(){
+			var map = new google.maps.Map(document.getElementById('map'), {
+			center: {lat: 24.9699054, lng:121.264305 },
+			zoom: 8
+			});
+			$.ajax({
+			url: "test.xml",
+			type: "POST",
+			datatype: "xml",
+			success: function( xml ) {
+				$(xml).find("news").each(function(){
+				//$("xml")
+				addressToLatLng($(this).children('local').text())
+				if(!flag)return true; 
+				//var lat = item["Lat"];
+				//var lng = item["Lot"];
+				
+				var newscontent = $(this).children('newscontent').text();
+				var newstitle = $(this).children('newstitle').text();
+				var myCenter=new google.maps.LatLng(24.9699054,121.264305);
+				var  png = "http://d.beifengwang.com/d/file/png/qita/w3sauldirlr.png";
+				
+				
+				var marker=new google.maps.Marker({
+					position:myCenter,
+					icon :png
+				});		
+				marker.setMap(map);
+				var infowindow = new google.maps.InfoWindow({
+					content:newstitle+":"+newscontent
+				});
+				
+				google.maps.event.addListener(marker, 'click', function() {
+					infowindow.open(map,marker);
+				});
+	    			
+			});
+			},
+			error : function(){
+			alert( "Request failed." );
+			}
+			});
+		});
+		}
+	</script>
+</head>
+<body>
+	<select id="catage" onchange="drawmap()">
+	<option value="1">最新</option>
+	<option value="2">焦點</option>
+	</select>
+	<div id="map"></div>
+</body>
+</html>
